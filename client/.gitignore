@@ -1,0 +1,95 @@
+# Client-side .gitignore
+# =======================
+
+# Dependencies
+# ------------
+node_modules/
+.pnp*
+.yarn-integrity
+
+# Build Output
+# ------------
+dist/          # Production build
+build/         # Create-React-App build
+out/           # Next.js build
+.next/         # Next.js cache
+.cache/        # Vite cache
+.turbo/        # Turborepo cache
+
+# Environment Files
+# -----------------
+.env
+.env.local
+.env.*.local
+.env.production
+.env.development
+.env.test
+
+# Logs
+# ----
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+pnpm-debug.log*
+
+# Editor & IDE
+# ------------
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*.code-workspace
+
+# System Files
+# ------------
+.DS_Store
+Thumbs.db
+
+# Testing
+# -------
+coverage/
+.nyc_output/
+jest-coverage/
+cypress/screenshots/
+cypress/videos/
+__snapshots__/
+*.snap
+
+# Package Manager Files
+# ---------------------
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+shrinkwrap.yaml
+
+# TypeScript
+# ----------
+*.tsbuildinfo
+
+# Vite Specific
+# -------------
+.vite/
+*.local
+
+# Storybook
+# ---------
+.storybook-dist/
+storybook-static/
+
+# ESLint/Prettier
+# ---------------
+.eslintcache
+.prettierignore
+
+# Misc
+# ----
+*.orig
+*.bak
+*.patch
+.tmp/
+temp/
