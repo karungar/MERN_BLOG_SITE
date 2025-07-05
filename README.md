@@ -12,7 +12,7 @@ The MERN Blog Application allows users to register, log in, create and manage bl
 
 ## Project Structure
 
-
+```
 project/
 ├── client/                  # React frontend
 │   ├── public/
