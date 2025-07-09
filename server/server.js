@@ -18,6 +18,8 @@ import commentRoutes from './routes/comments.js';
 // Import middleware
 import { errorHandler, notFound } from './middleware/errorHandler.js';
 
+import { authenticate, authorize, optionalAuth } from './middleware/auth.js';
+
 // Import database connection function
 import connectDB from './config/database.js';
 
@@ -125,7 +127,8 @@ app.use(helmet({
 // CORS configuration
 app.use(cors({
   origin: process.env.CLIENT_URL || 'http://localhost:5173',
-  credentials: true
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE']
 }));
 
 // Logging middleware
@@ -216,9 +219,19 @@ app.get('/health', (req, res) => {
 
 // API routes
 app.use('/api/auth', authRoutes);
-app.use('/api/posts', postRoutes);
-app.use('/api/categories', categoryRoutes);
-app.use('/api/comments', commentRoutes);
+app.use('/api/posts', optionalAuth, postRoutes);
+app.use('/api/categories', optionalAuth, categoryRoutes);
+app.use('/api/comments', optionalAuth, commentRoutes);
+
+// Protected profile route
+app.get('/api/auth/profile', authenticate, (req, res) => {
+  // User is attached to req by authenticate middleware
+  const { _id, name, email, role, createdAt } = req.user;
+  res.json({
+    success: true,
+    data: { _id, name, email, role, createdAt }
+  });
+});
 
 // Root endpoint
 app.get('/', (req, res) => {

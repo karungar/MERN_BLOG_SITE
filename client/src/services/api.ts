@@ -8,7 +8,7 @@ import {
   PostFilters 
 } from '../types';
 
-const API_BASE_URL = '/api';
+const API_BASE_URL = '';
 
 // Helper function to get auth headers
 const getAuthHeaders = () => {

@@ -1,10 +1,30 @@
-// controllers/postController.js
 import mongoose from 'mongoose';
 import PostModel from '../models/Post.js';
 import CommentModel from '../models/Comment.js';
 
+// Authorization helper functions
+const isAuthorizedForPost = (post, user) => {
+  return (
+    user.role === 'admin' || 
+    post.author.toString() === user._id.toString()
+  );
+};
+
+const isAuthorRole = (user) => {
+  return ['admin', 'author'].includes(user.role);
+};
+
+// Controller functions with authorization
 async function createPost(req, res) {
   try {
+    // Authorization: Only authors/admins can create posts
+    if (!isAuthorRole(req.user)) {
+      return res.status(403).json({
+        success: false,
+        message: 'Unauthorized. Only authors and admins can create posts'
+      });
+    }
+
     const post = new PostModel({
       title: req.body.title,
       slug: req.body.slug,
@@ -168,14 +188,31 @@ async function updatePost(req, res) {
       });
     }
     
+    // Get post first for authorization check
+    const existingPost = await PostModel.findById(req.params.id);
+    if (!existingPost) {
+      return res.status(404).json({
+        success: false,
+        message: 'Post not found'
+      });
+    }
+
+    // Authorization: Only author or admin can update
+    if (!isAuthorizedForPost(existingPost, req.user)) {
+      return res.status(403).json({
+        success: false,
+        message: 'Unauthorized. You can only update your own posts'
+      });
+    }
+
     const updateData = { ...req.body };
     
     // Handle published_at
-    if (updateData.status === 'published' && !updateData.published_at) {
+    if (updateData.status === 'published' && !existingPost.published_at) {
       updateData.published_at = new Date();
     }
     
-    const post = await PostModel.findByIdAndUpdate(
+    const updatedPost = await PostModel.findByIdAndUpdate(
       req.params.id,
       updateData,
       { new: true, runValidators: true }
@@ -183,19 +220,12 @@ async function updatePost(req, res) {
     .populate('author', 'username avatar role')
     .populate('category', 'name slug');
     
-    if (!post) {
-      return res.status(404).json({
-        success: false,
-        message: 'Post not found'
-      });
-    }
-    
     // Get comment count
-    const commentCount = await CommentModel.countDocuments({ post: post._id });
+    const commentCount = await CommentModel.countDocuments({ post: updatedPost._id });
     
     res.json({
       success: true,
-      data: { ...post.toObject(), commentCount }
+      data: { ...updatedPost.toObject(), commentCount }
     });
   } catch (error) {
     res.status(500).json({
@@ -215,18 +245,28 @@ async function deletePost(req, res) {
       });
     }
     
-    // Delete associated comments
-    await CommentModel.deleteMany({ post: req.params.id });
-    
-    // Delete the post
-    const result = await PostModel.findByIdAndDelete(req.params.id);
-    
-    if (!result) {
+    // Get post first for authorization check
+    const existingPost = await PostModel.findById(req.params.id);
+    if (!existingPost) {
       return res.status(404).json({
         success: false,
         message: 'Post not found'
       });
     }
+
+    // Authorization: Only author or admin can delete
+    if (!isAuthorizedForPost(existingPost, req.user)) {
+      return res.status(403).json({
+        success: false,
+        message: 'Unauthorized. You can only delete your own posts'
+      });
+    }
+
+    // Delete associated comments
+    await CommentModel.deleteMany({ post: req.params.id });
+    
+    // Delete the post
+    await PostModel.findByIdAndDelete(req.params.id);
     
     res.status(204).send();
   } catch (error) {
